@@ -1,0 +1,42 @@
+[
+  {
+    "key": "ApiKey",
+    "type": "input",
+    "defaultValue": "",
+    "templateOptions": {
+      "type": "password",
+      "label": "ApiKey",
+      "description": "The ApiKey to connect to the API",
+      "required": true
+    }
+  },
+  {
+    "key": "BaseUrl",
+    "type": "input",
+    "defaultValue": "",
+    "templateOptions": {
+      "label": "BaseUrl",
+      "description": "The URL to the API.",
+      "required": true
+    }
+  },
+  {
+    "key": "OrganizationUnitIdMapping",
+    "type": "input",
+    "templateOptions": {
+      "label": "OrganizationUnitIdMapping",
+      "description": "<Fullpath to mapping>OrganizationUnitIdMapping.csv",
+      "required": true
+    }
+  },
+  {
+    "key": "CSVDelimiter",
+    "type": "input",
+    "defaultValue": ";",
+    "templateOptions": {
+      "label": "CSV Delimiter",
+      "placeholder": "",
+      "required": true
+    }
+  }
+]
