@@ -68,7 +68,7 @@ try {
         } | ConvertTo-Json
     }
 
-    $responseGetUser = (Invoke-WebRequest @splatGetUser)
+    $responseGetUser = (Invoke-WebRequest @splatGetUser -UseBasicParsing)
     $correlatedAccount = ([Text.Encoding]::UTF8.GetString([Text.Encoding]::GetEncoding(28591).GetBytes(($responseGetUser.Content))) | ConvertFrom-Json)
 
     $actionList = [System.Collections.Generic.List[Object]]::new()
@@ -90,7 +90,7 @@ try {
                 UserID = $actionContext.References.Account
             } | ConvertTo-Json
         }
-        $responseEmployee = (Invoke-WebRequest @splatGetEmployee)
+        $responseEmployee = (Invoke-WebRequest @splatGetEmployee -UseBasicParsing)
         $correlatedEmployee = ([Text.Encoding]::UTF8.GetString([Text.Encoding]::GetEncoding(28591).GetBytes(($responseEmployee.Content))) | ConvertFrom-Json)
         if ($correlatedEmployee) {
             $correlatedAccount | Add-Member -MemberType NoteProperty -Name 'Function' -Value $correlatedEmployee.Function

@@ -69,6 +69,9 @@ try {
     }
 
     $currentUserRoles = (Invoke-RestMethod @splatGetUser).Roles
+    write-warning "start UserRoles"
+    write-warning ($currentUserRoles | ConvertTo-Json)
+    write-warning "end UserRoles"
     $allUserRoles = [System.Collections.Generic.List[object]]::new($currentUserRoles)
 
     [array]$organizationUnitIdMapping = Import-Csv -Path $actionContext.Configuration.OrganizationUnitIdMapping -Delimiter $actionContext.Configuration.CSVDelimiter
@@ -114,25 +117,28 @@ try {
     foreach ($departmentId in $desiredDepartments) {
         $role = $allUserRoles | Where-Object {
             $_.RoleID -eq $actionContext.References.Permission.Reference -and
-            $_.OrganizationUnitSetID -eq $departmentId
+            #$_.OrganizationUnitSetID -eq $departmentId
+            $_.OrganizationUnitID -eq $departmentId
         }
         if ($null -eq $role) {
             $updateRequired = $true
             $allUserRoles.Add([PSCustomObject]@{
                     RoleID                = $actionContext.References.Permission.Reference
-                    OrganizationUnitSetID = $departmentId
+                    #OrganizationUnitSetID = $departmentId
+                    OrganizationUnitID = $departmentId
+                    
                 }
             )
         }
 
         $successAuditLogs.Add([PSCustomObject]@{
                 Action  = 'GrantPermission'
-                Message = "Granted access [$($actionContext.References.Permission.DisplayName)] to OrganizationUnitId [$($departmentId)]"
+                Message = "Granted access [$($actionContext.PermissionDisplayName)] to OrganizationUnitId [$($departmentId)]"
                 IsError = $false
             })
 
         $outputContext.SubPermissions.Add([PSCustomObject]@{
-                DisplayName = "$($actionContext.References.Permission.DisplayName) | OrganizationUnitId: $($departmentId)"
+                DisplayName = "$($actionContext.PermissionDisplayName) | OrganizationUnitId: $($departmentId)"
                 Reference   = @{
                     id = $departmentId
                 }
@@ -144,7 +150,8 @@ try {
         if ( -not ($departmentId -in $desiredDepartments) ) {
             $role = $allUserRoles | Where-Object {
                 $_.RoleID -eq $actionContext.References.Permission.Reference -and
-                $_.OrganizationUnitSetID -eq $departmentId
+                #$_.OrganizationUnitSetID -eq $departmentId
+                $_.OrganizationUnitID -eq $departmentId
             }
             if ($null -ne $role) {
                 $updateRequired = $true
@@ -153,7 +160,7 @@ try {
 
             $successAuditLogs.Add([PSCustomObject]@{
                     Action  = 'RevokePermission'
-                    Message = "Revoked access [$($actionContext.References.Permission.DisplayName)] from OrganizationUnitId [$($departmentId)]"
+                    Message = "Revoked access [$($actionContext.PermissionDisplayName)] from OrganizationUnitId [$($departmentId)]"
                     IsError = $false
                 })
         }
@@ -169,7 +176,10 @@ try {
                 Roles  = [array]@($allUserRoles )
             } | ConvertTo-Json
         }
+        write-warning "Start SetUserRoles"
+        write-warning ($splatSetUser | ConvertTo-Json)
         $null = (Invoke-RestMethod @splatSetUser)
+        write-warning "End SetUserRoles"
     }
 
     if (-not ($true -in $outputContext.AuditLogs.IsError)) {
@@ -183,10 +193,10 @@ try {
         if ($($ex.Exception.GetType().FullName -eq 'Microsoft.PowerShell.Commands.HttpResponseException') -or
             $($ex.Exception.GetType().FullName -eq 'System.Net.WebException')) {
             $errorObj = Resolve-NewBlackError -ErrorObject $ex
-            $auditMessage = "Could not manage NewBlack [$($actionContext.References.Permission.DisplayName)] permission. Error: $($errorObj.FriendlyMessage)"
+            $auditMessage = "Could not manage NewBlack [$($actionContext.PermissionDisplayName)] permission. Error: $($errorObj.FriendlyMessage)"
             Write-Warning "Error at Line '$($errorObj.ScriptLineNumber)': $($errorObj.Line). Error: $($errorObj.ErrorDetails)"
         } else {
-            $auditMessage = "Could not manage NewBlack [$($actionContext.References.Permission.DisplayName)] permission. Error: $($_.Exception.Message)"
+            $auditMessage = "Could not manage NewBlack [$($actionContext.PermissionDisplayName)] permission. Error: $($_.Exception.Message)"
             Write-Warning "Error at Line '$($ex.InvocationInfo.ScriptLineNumber)': $($ex.InvocationInfo.Line). Error: $($ex.Exception.Message)"
         }
         $outputContext.AuditLogs.Add([PSCustomObject]@{
