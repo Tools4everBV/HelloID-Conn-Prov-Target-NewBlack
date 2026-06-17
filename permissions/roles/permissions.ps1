@@ -65,8 +65,6 @@ try {
                 DisplayName    = $permission.Name
                 Identification = @{
                     Reference   = $permission.ID
-                    DisplayName = $permission.Name
-                    UserType    = $permission.UserType
                 }
             }
         )

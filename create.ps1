@@ -51,6 +51,7 @@ try {
         'Content-Type'   = 'application/json'
         Authorization    = "Bearer $($actionContext.Configuration.ApiKey)"
     }
+
     # Validate correlation configuration
     if ($actionContext.CorrelationConfiguration.Enabled) {
         $correlationField = $actionContext.CorrelationConfiguration.AccountField
@@ -74,12 +75,14 @@ try {
                 IncludeEmployees  = $true
             } | ConvertTo-Json
         }
-        $responseSearchUser = (Invoke-WebRequest @splatSearchUser)
+
+        $responseSearchUser = (Invoke-WebRequest @splatSearchUser -UseBasicParsing)
         $correlatedAccount = ([Text.Encoding]::UTF8.GetString([Text.Encoding]::GetEncoding(28591).GetBytes(($responseSearchUser.Content))) | ConvertFrom-Json).Result.Page
     }
 
     $actionList = [System.Collections.Generic.List[Object]]::new()
     if ($correlatedAccount.Count -eq 1) {
+        $correlatedAccount = $correlatedAccount[0]
         $actionList.Add('CorrelateAccount')
         if (-not ($correlatedAccount.BackendRelationID -eq $actionContext.Data.BackendRelationID)) {
             $actionList.Add('UpdateBackendRelationID')
@@ -101,7 +104,7 @@ try {
                 Headers = $headers
                 Body    = ([System.Text.Encoding]::UTF8.GetBytes($bodyJson))
             }
-            $responseSearchUser = (Invoke-WebRequest @splatSearchUser)
+            $responseSearchUser = (Invoke-WebRequest @splatSearchUser -UseBasicParsing)
 
             if (-not ($null -eq $responseSearchUser.Content)) {
                 $AccountWithSameEmail = ([Text.Encoding]::UTF8.GetString([Text.Encoding]::GetEncoding(28591).GetBytes(($responseSearchUser.Content))) | ConvertFrom-Json).Result.Page
