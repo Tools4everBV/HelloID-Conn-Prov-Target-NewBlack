@@ -9,7 +9,6 @@
 # Script Configuration
 $departmentLookupProperty = { $_.Department.ExternalId }
 
-
 #region functions
 function Resolve-NewBlackError {
     [CmdletBinding()]
@@ -69,11 +68,7 @@ try {
     }
 
     $currentUserRoles = (Invoke-RestMethod @splatGetUser).Roles
-    write-warning "start UserRoles"
-    write-warning ($currentUserRoles | ConvertTo-Json)
-    write-warning "end UserRoles"
     $allUserRoles = [System.Collections.Generic.List[object]]::new($currentUserRoles)
-
     [array]$organizationUnitIdMapping = Import-Csv -Path $actionContext.Configuration.OrganizationUnitIdMapping -Delimiter $actionContext.Configuration.CSVDelimiter
 
     # Collect current permissions

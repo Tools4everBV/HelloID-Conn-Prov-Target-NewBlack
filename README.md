@@ -4,7 +4,7 @@
 > This repository contains the connector and configuration code only. The implementer is responsible to acquire the connection details such as username, password, certificate, etc. You might even need to sign a contract or agreement with the supplier before implementing this connector. Please contact the client's application manager to coordinate the connector requirements.
 
 <p align="center">
-  <img src="https://avatars.githubusercontent.com/u/14044098?s=200&v=4">
+  <img src="https://github.com/Tools4everBV/HelloID-Conn-Prov-Target-NewBlack/blob/main/Logo.png?raw=true">
 </p>
 
 ## Table of contents
@@ -12,12 +12,14 @@
 - [HelloID-Conn-Prov-Target-NewBlack](#helloid-conn-prov-target-newblack)
   - [Table of contents](#table-of-contents)
   - [Introduction](#introduction)
+  - [Supported features](#supported-features)
   - [Getting started](#getting-started)
-    - [Prerequisites](#prerequisites)
+    - [HelloID Icon URL](#helloid-icon-url)
+    - [Requirements](#requirements)
     - [Connection settings](#connection-settings)
     - [Correlation configuration](#correlation-configuration)
-    - [Available lifecycle actions](#available-lifecycle-actions)
     - [Field mapping](#field-mapping)
+    - [Account Reference](#account-reference)
   - [Remarks](#remarks)
     - [Concurrent actions](#concurrent-actions)
     - [Account Access](#account-access)
@@ -40,9 +42,32 @@
 
 _HelloID-Conn-Prov-Target-NewBlack_ is a _target_ connector. _NewBlack_ provides a set of REST API's that allow you to programmatically interact with its data.
 
+## Supported features
+
+The following features are available:
+
+| Feature                                   | Supported | Remarks                                                   |
+| ----------------------------------------- | --------- | --------------------------------------------------------- |
+| **Account Lifecycle**                     | ✅         | Create, Update, Enable*, Disable*, Delete*                |
+| **Permissions**                           | ✅         | subPermissions, roles mapped via OrganizationUnit mapping |
+| **Resources**                             | ❌         | -                                                         |
+| **Entitlement Import: Accounts**          | ❌         | -                                                         |
+| **Entitlement Import: Permissions**       | ❌         |                                                           |
+| **Governance Reconciliation Resolutions** | ❌         | -                                                         |
+
+*Enable/Disable and Delete are managed through a separate login group rather than direct account properties.
+
 ## Getting started
 
-### Prerequisites
+### HelloID Icon URL
+
+URL of the icon used for the HelloID Provisioning target system.
+
+```
+https://raw.githubusercontent.com/Tools4everBV/HelloID-Conn-Prov-Target-NewBlack/refs/heads/main/Logo.png
+```
+
+### Requirements
 
 <!--
 Describe the specific requirements that must be met before using this connector, such as the need for an agent, a certificate or IP whitelisting.
@@ -81,38 +106,39 @@ The correlation configuration is used to specify which properties will be used t
 > [!TIP]
 > _For more information on correlation, please refer to our correlation [documentation](https://docs.helloid.com/en/provisioning/target-systems/powershell-v2-target-systems/correlation.html) pages_.
 
-### Available lifecycle actions
-
-The following lifecycle actions are available:
-
-| Action                                  | Description                                                                     |
-| --------------------------------------- | ------------------------------------------------------------------------------- |
-| create.ps1                              | Creates a new account.                                                          |
-| delete.ps1                              | n/a                                                                             |
-| disable.ps1                             | n/a **Account access will be managed with a login group*                        |
-| enable.ps1                              | n/a **Account access will be managed with a login group*                        |
-| update.ps1                              | Updates the attributes of an account.                                           |
-| permissions/roles/subPermissions.ps1    | Grants and revoke permissions to an account to the associated organizationUnits. *(Based on ExternalMapping CSV file.)*                                   |
-| permissions/groups/permissions.ps1      | Retrieves all available permissions (Roles).                                    |
-| configuration.json                      | Contains the connection settings and general configuration for the connector.   |
-| fieldMapping.json                       | Defines mappings between person fields and target system person account fields. |
-
 ### Field mapping
 
 The field mapping can be imported by using the _fieldMapping.json_ file.
 
+### Account Reference
+
+The account reference is populated with the `id` property returned by the NewBlack API. The following lifecycle actions are available:
+
+| Action                               | Description                                                                                                            |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
+| create.ps1                           | Creates a new account.                                                                                                 |
+| delete.ps1                           | Not applicable - managed through login group                                                                           |
+| disable.ps1                          | Not applicable - Account access is managed with a login group                                                          |
+| enable.ps1                           | Not applicable - Account access is managed with a login group                                                          |
+| update.ps1                           | Updates the attributes of an account.                                                                                  |
+| permissions/roles/subPermissions.ps1 | Grants and revoke permissions to an account to the associated organizationUnits *(Based on ExternalMapping CSV file.)* |
+| permissions/groups/permissions.ps1   | Retrieves all available permissions (Roles).                                                                           |
+| configuration.json                   | Contains the connection settings and general configuration for the connector.                                          |
+| fieldMapping.json                    | Defines mappings between person fields and target system person account fields.                                        |
+
 ## Remarks
+
 ### Concurrent actions
+
 > [!IMPORTANT]
 > Granting and revoking Roles is done by editing roles after receiving the currently assigned roles. For this reason, the concurrent actions need to be set to `1`.
 
-
 ### Account Access
-- Enable/Disable is managed through a separate group that must be created specifically for each system. In New-Black, there is no standalone account property for enabling or disabling. However, there is a permission that handles this. This permission can be assigned to a group, which HelloID can then use as a login permission.
-- This group can be named for example 'Login' and managed like any other group.
 
+Enable/Disable is managed through a separate group that must be created specifically for each system. In New-Black, there is no standalone account property for enabling or disabling. However, there is a permission that handles this. This permission can be assigned to a group, which HelloID can then use as a login permission. This group can be named for example 'Login' and managed like any other group.
 
 ### Account object
+
 #### Employee- and UserObject
 - There are two separate account objects in New Black, one for the user and one for the employee.
 - The relation between those object is always one-on-one.
@@ -141,7 +167,6 @@ Powershell 7.1 Example:
 ```PowerShell
 $correlatedAccount = (Invoke-RestMethod @splatSearchUser).Result.Page
 ```
-
 
 ### Permissions
 - The roles include a UserType, where UserType '1' is specified for employees. The connector currently does not filter based on UserType, but this functionality can be incorporated into the permissions script to meet customer requirements.
@@ -185,9 +210,6 @@ Access to the API documentation is restricted to users with valid credentials
 
 > [!TIP]
 > _For more information on how to configure a HelloID PowerShell connector, please refer to our [documentation](https://docs.helloid.com/en/provisioning/target-systems/powershell-v2-target-systems.html) pages_.
-
-> [!TIP]
->  _If you need help, feel free to ask questions on our [forum](https://forum.helloid.com/forum/helloid-connectors/provisioning/5294-helloid-conn-prov-target-newblack)_.
 
 ## HelloID docs
 
